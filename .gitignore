@@ -1,0 +1,7 @@
+# Automated pointer folders
+automated-pointer/
+virual_pointer/
+
+# Dependencies
+node_modules/
+
