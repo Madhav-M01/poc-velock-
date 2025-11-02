@@ -5,3 +5,6 @@ virual_pointer/
 # Dependencies
 node_modules/
 
+# Claude Code configuration
+.claude/
+

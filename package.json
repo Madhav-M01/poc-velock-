@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "robotjs": "^0.6.0",
+    "jimp": "^0.22.10",
+    "@napi-rs/canvas": "^0.1.56"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "virual_nutjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pointer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron pointer-electron.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "canvas": "^3.2.0",
+    "jimp": "^1.6.0"
+  },
+  "devDependencies": {
+    "electron": "^39.0.0"
+  }
+}
