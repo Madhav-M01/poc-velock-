@@ -11,5 +11,6 @@ export interface ScreenSource {
 interface Window {
   electronAPI: {
     getScreenSources: () => Promise<ScreenSource[]>
+    onScreenSelected: (callback: (sourceId: string) => void) => () => void
   }
 }
