@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain, desktopCapturer } from 'electron'
+import { app, BrowserWindow, ipcMain, desktopCapturer, Tray, Menu, nativeImage } from 'electron'
 import path from 'path'
 
 let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -24,6 +25,58 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+}
+
+// Create system tray icon
+async function createTray() {
+  // Create a simple icon for the tray (you can replace this with an actual icon file)
+  const icon = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEfSURBVDiNpZMxSsRAFIa/l2QXYmFhYWFhYWFhYWFhIRYWFhYWFhYWFhYWFhYWFhYWFhYW4gGEQDyAYGFhYWEhHkAQT+ABRK9gYWFhYWFhYSFew8IkZnezm+wk+8q8/9/3v/m8YRiGYRiGYRiGYRiGYRiGYfwvAG4BXoCv4Av4BG6BC+AcOAN2gR1gG9gCNoENYB1YA1aBFWAZWAIWgQVgHpgD0sAMMAksABPA+BhgDhgDRoFRYAQYBoaAQWAAiAPdQBfoADqBdqAN6AS6gA6gHWgD2oAWoAVoBlqBZqAJaASagEagAagH6oB6oA6oBWqBGqAaqAKqgEqgAqgAyoFyoAwoA0qBUqAEKAaKgUKgECgA8oE8IBfIAXKAbCALyASygQwgHUgDUoFUIBlIApKBJCAR+AUxvXVkVQeMqgAAAABJRU5ErkJggg==')
+
+  tray = new Tray(icon)
+  tray.setToolTip('Screen Selector')
+
+  await updateTrayMenu()
+}
+
+// Update tray menu with available screens
+async function updateTrayMenu() {
+  if (!tray) return
+
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ['window', 'screen'],
+      thumbnailSize: { width: 50, height: 50 }
+    })
+
+    const menuItems = sources.map(source => ({
+      label: source.name,
+      click: () => {
+        // Send selected screen to renderer process
+        if (mainWindow) {
+          mainWindow.webContents.send('screen-selected', source.id)
+        }
+      }
+    }))
+
+    // Add separator and refresh option
+    menuItems.push(
+      { type: 'separator' as const },
+      {
+        label: 'Refresh List',
+        click: () => updateTrayMenu()
+      },
+      { type: 'separator' as const },
+      {
+        label: 'Quit',
+        click: () => app.quit()
+      }
+    )
+
+    const contextMenu = Menu.buildFromTemplate(menuItems)
+    tray.setContextMenu(contextMenu)
+  } catch (error) {
+    console.error('Error updating tray menu:', error)
+  }
 }
 
 // IPC Handlers
@@ -62,7 +115,9 @@ ipcMain.handle('get-screen-sources', async () => {
 
 app.whenReady().then(() => {
   createWindow()
-    // for macOS specific behavior
+  createTray()
+
+  // for macOS specific behavior
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
